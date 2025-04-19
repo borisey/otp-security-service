@@ -37,7 +37,7 @@ public class AdminController {
     // Удаление пользователя и его OTP
     @DeleteMapping("/users/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        otpService.deleteOtpByUserId(id); // реализация ниже
+        otpService.deleteOtpByUserId(id);
         userRepository.deleteById(id);
         return ResponseEntity.ok("User and OTP deleted");
     }
