@@ -22,4 +22,12 @@ public class JwtUtil {
                 .signWith(secretKey)
                 .compact();
     }
+    public String extractUsername(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
 }
