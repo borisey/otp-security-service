@@ -1,6 +1,7 @@
 package com.example.otp_security_service.controllers;
 
 import com.example.otp_security_service.dto.LoginRequest;
+import com.example.otp_security_service.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,9 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -24,6 +28,7 @@ public class AuthController {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return "Login successful";
+        String token = jwtUtil.generateToken(request.getUsername());
+        return token;
     }
 }
