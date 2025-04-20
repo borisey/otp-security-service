@@ -5,6 +5,7 @@ import com.example.otp_security_service.models.OtpConfig;
 import com.example.otp_security_service.models.OtpStatus;
 import com.example.otp_security_service.models.User;
 import com.example.otp_security_service.repo.OtpConfigRepository;
+import com.example.otp_security_service.services.EmailNotificationService;
 import com.example.otp_security_service.services.OtpService;
 import com.example.otp_security_service.services.UserService;
 import org.springframework.security.core.Authentication;
@@ -23,11 +24,15 @@ public class UserController {
     private final UserService userService;
     private final OtpService otpService;
     private final OtpConfigRepository otpConfigRepository;
+    private final EmailNotificationService emailService;
 
-    public UserController(UserService userService, OtpService otpService, OtpConfigRepository otpConfigRepository) {
+    public UserController(UserService userService, OtpService otpService,
+                          OtpConfigRepository otpConfigRepository,
+                          EmailNotificationService emailService) {
         this.userService = userService;
         this.otpService = otpService;
         this.otpConfigRepository = otpConfigRepository;
+        this.emailService = emailService;
     }
 
     @GetMapping
@@ -80,6 +85,12 @@ public class UserController {
             otp.setOperation("DELETE_USER");
 
             otpService.save(otp);
+
+            // Проверка доступности SMTP-сервера
+            if (emailService.isMailServerAvailable()) {
+                // Отправка кода по email
+                emailService.sendCode(user.getEmail(), code);
+            }
 
             return Map.of(
                     "message", "OTP code has been generated and sent",
