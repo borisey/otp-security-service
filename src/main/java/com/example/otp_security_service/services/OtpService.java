@@ -5,6 +5,7 @@ import com.example.otp_security_service.repo.OtpCodeRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -40,5 +41,17 @@ public class OtpService {
 
     public void save(OtpCode otpCode) {
         otpCodeRepository.save(otpCode);
+    }
+
+    public OtpCode findOtpByCodeAndUser(String code, User user) {
+        return otpCodeRepository.findByCodeAndUser(code, user);
+    }
+
+    public List<OtpCode> findAllByUser(User user) {
+        return otpCodeRepository.findAllByUser(user);
+    }
+
+    public void saveAll(List<OtpCode> otpCodes) {
+        otpCodeRepository.saveAll(otpCodes);
     }
 }

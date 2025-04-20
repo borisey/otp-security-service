@@ -21,8 +21,8 @@ public class OtpCode {
 
     private String operation; // Пример: DELETE_USER
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @PrePersist

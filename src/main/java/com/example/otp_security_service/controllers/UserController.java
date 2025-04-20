@@ -90,4 +90,59 @@ public class UserController {
 
         return Map.of("error", "Unable to identify user");
     }
+
+    @PostMapping("/me/confirm-deletion")
+    public Map<String, String> confirmDeletion(@RequestBody Map<String, String> request) {
+        String code = request.get("code");
+
+        if (code == null || code.isEmpty()) {
+            return Map.of("error", "OTP code is required");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails userDetails) {
+            User user = userService.findByUsername(userDetails.getUsername());
+
+            // Явно подгружаем user из БД (управляемый)
+            User managedUser = userService.findById(user.getId());
+
+            // Находим OTP по коду и пользователю
+            OtpCode otp = otpService.findOtpByCodeAndUser(code, managedUser);
+
+            if (otp == null) {
+                return Map.of("error", "Invalid OTP code");
+            }
+
+            if (otp.getStatus() == OtpStatus.USED) {
+                return Map.of("error", "OTP code has already been used");
+            }
+
+            if (otp.getStatus() == OtpStatus.EXPIRED || otp.getExpiresAt().isBefore(LocalDateTime.now())) {
+                otp.setStatus(OtpStatus.EXPIRED);
+                otp.setUser(managedUser); // важно
+                otpService.save(otp);
+                return Map.of("error", "OTP code has expired");
+            }
+
+            // Обновляю код
+            otp.setStatus(OtpStatus.USED);
+            otp.setUser(managedUser);
+            otpService.save(otp);
+
+            List<OtpCode> otps = otpService.findAllByUser(managedUser);
+            for (OtpCode o : otps) {
+                o.setUser(null); // отключаем внешнюю связь
+            }
+            otpService.saveAll(otps);
+
+            // Удаляем пользователя
+            userService.deleteById(managedUser.getId());
+
+            return Map.of("message", "User has been deleted");
+        }
+
+        return Map.of("error", "Unable to identify user");
+    }
 }
