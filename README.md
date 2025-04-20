@@ -10,6 +10,8 @@
 
 ### 1. Регистрация пользователя
 
+![alt text](https://disk.yandex.ru/i/1iahT3B3ilatOg)
+
 Отправьте запрос методом `POST` по url `http://localhost:8080/api/register`
 
 В теле запроса передайте `JSON`, содержащий имя пользователя, email и пароль.
