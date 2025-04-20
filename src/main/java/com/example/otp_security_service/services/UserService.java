@@ -1,5 +1,6 @@
 package com.example.otp_security_service.services;
 
+import com.example.otp_security_service.models.Role;
 import com.example.otp_security_service.models.User;
 import com.example.otp_security_service.repo.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,8 +21,15 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        // Хэшируем пароль перед сохранением
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Если это первый пользователь, назначаем ADMIN
+        if (userRepository.count() == 0) {
+            user.setRole(Role.ADMIN);
+        } else {
+            user.setRole(Role.USER); // остальные - USER
+        }
+
         return userRepository.save(user);
     }
 
