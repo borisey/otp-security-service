@@ -1,7 +1,10 @@
 package com.example.otp_security_service.controllers;
 
 import com.example.otp_security_service.models.OtpCode;
+import com.example.otp_security_service.models.OtpConfig;
+import com.example.otp_security_service.models.OtpStatus;
 import com.example.otp_security_service.models.User;
+import com.example.otp_security_service.repo.OtpConfigRepository;
 import com.example.otp_security_service.services.OtpService;
 import com.example.otp_security_service.services.UserService;
 import org.springframework.security.core.Authentication;
@@ -9,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -18,10 +22,12 @@ public class UserController {
 
     private final UserService userService;
     private final OtpService otpService;
+    private final OtpConfigRepository otpConfigRepository;
 
-    public UserController(UserService userService, OtpService otpService) {
+    public UserController(UserService userService, OtpService otpService, OtpConfigRepository otpConfigRepository) {
         this.userService = userService;
         this.otpService = otpService;
+        this.otpConfigRepository = otpConfigRepository;
     }
 
     @GetMapping
@@ -51,12 +57,34 @@ public class UserController {
 
         if (principal instanceof UserDetails userDetails) {
             User user = userService.findByUsername(userDetails.getUsername());
-            OtpCode otp = otpService.generateOtp(user, "DELETE_USER");
+
+            // Получаем текущую конфигурацию OTP (единственная запись)
+            OtpConfig config = otpConfigRepository.findTopByOrderByIdAsc();
+
+            if (config == null) {
+                return Map.of("error", "OTP configuration not found");
+            }
+
+            // Генерация кода нужной длины
+            String code = otpService.generateRandomCode(config.getCodeLength());
+
+            // Вычисление времени окончания действия кода
+            LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(config.getExpirationMinutes());
+
+            // Создание и сохранение записи OTP-кода
+            OtpCode otp = new OtpCode();
+            otp.setUser(user);
+            otp.setCode(code);
+            otp.setExpiresAt(expiresAt);
+            otp.setStatus(OtpStatus.ACTIVE);
+            otp.setOperation("DELETE_USER");
+
+            otpService.save(otp);
 
             return Map.of(
                     "message", "OTP code has been generated and sent",
-                    "otpCode", otp.getCode(), // в реальном проекте не отправляем в ответ!
-                    "expiresAt", otp.getExpiresAt().toString()
+                    "otpCode", code,
+                    "expiresAt", expiresAt.toString()
             );
         }
 

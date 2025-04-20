@@ -27,4 +27,18 @@ public class OtpService {
 
         return otpCodeRepository.save(otp);
     }
+
+    public String generateRandomCode(int length) {
+        String digits = "0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(digits.charAt(random.nextInt(digits.length())));
+        }
+        return sb.toString();
+    }
+
+    public void save(OtpCode otpCode) {
+        otpCodeRepository.save(otpCode);
+    }
 }
