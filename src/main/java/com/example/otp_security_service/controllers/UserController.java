@@ -2,8 +2,6 @@ package com.example.otp_security_service.controllers;
 
 import com.example.otp_security_service.models.User;
 import com.example.otp_security_service.services.UserService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,5 +38,23 @@ public class UserController {
         }
 
         return Map.of("user", principal.toString());
+    }
+
+    @PostMapping("/me/delete")
+    public Map<String, String> deleteCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails userDetails) {
+            // Получаем пользователя из базы по username
+            User user = userService.findByUsername(userDetails.getUsername());
+
+            // Удаляем по ID
+            userService.deleteById(user.getId());
+
+            return Map.of("message", "User with ID " + user.getId() + " has been deleted successfully");
+        }
+
+        return Map.of("error", "Unable to identify authenticated user");
     }
 }
