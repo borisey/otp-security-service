@@ -1,6 +1,8 @@
 package com.example.otp_security_service.controllers;
 
+import com.example.otp_security_service.models.OtpCode;
 import com.example.otp_security_service.models.User;
+import com.example.otp_security_service.services.OtpService;
 import com.example.otp_security_service.services.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,9 +17,11 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final OtpService otpService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, OtpService otpService) {
         this.userService = userService;
+        this.otpService = otpService;
     }
 
     @GetMapping
@@ -41,20 +45,21 @@ public class UserController {
     }
 
     @PostMapping("/me/delete")
-    public Map<String, String> deleteCurrentUser() {
+    public Map<String, String> requestDelete() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof UserDetails userDetails) {
-            // Получаем пользователя из базы по username
             User user = userService.findByUsername(userDetails.getUsername());
+            OtpCode otp = otpService.generateOtp(user, "DELETE_USER");
 
-            // Удаляем по ID
-            userService.deleteById(user.getId());
-
-            return Map.of("message", "User with ID " + user.getId() + " has been deleted successfully");
+            return Map.of(
+                    "message", "OTP code has been generated and sent",
+                    "otpCode", otp.getCode(), // в реальном проекте не отправляем в ответ!
+                    "expiresAt", otp.getExpiresAt().toString()
+            );
         }
 
-        return Map.of("error", "Unable to identify authenticated user");
+        return Map.of("error", "Unable to identify user");
     }
 }

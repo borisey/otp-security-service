@@ -1,18 +1,30 @@
 package com.example.otp_security_service.services;
 
+import com.example.otp_security_service.models.*;
+import com.example.otp_security_service.repo.OtpCodeRepository;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Random;
 
 @Service
 public class OtpService {
-    private int codeLength = 6;
-    private int ttlSeconds = 300;
 
-    public void updateConfig(int length, int ttl) {
-        this.codeLength = length;
-        this.ttlSeconds = ttl;
+    private final OtpCodeRepository otpCodeRepository;
+
+    public OtpService(OtpCodeRepository otpCodeRepository) {
+        this.otpCodeRepository = otpCodeRepository;
     }
 
-    public void deleteOtpByUserId(Long userId) {
-        System.out.println("OTP for user " + userId + " deleted");
+    public OtpCode generateOtp(User user, String operation) {
+        String code = String.valueOf(new Random().nextInt(900000) + 100000); // 6-значный код
+        OtpCode otp = new OtpCode();
+        otp.setCode(code);
+        otp.setStatus(OtpStatus.ACTIVE);
+        otp.setExpiresAt(LocalDateTime.now().plusMinutes(5)); // todo временно хардкод
+        otp.setUser(user);
+        otp.setOperation(operation);
+
+        return otpCodeRepository.save(otp);
     }
 }
