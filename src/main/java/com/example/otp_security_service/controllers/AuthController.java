@@ -34,19 +34,4 @@ public class AuthController {
         String token = jwtUtil.generateToken(request.getUsername());
         return token;
     }
-
-    @GetMapping("/me")
-    public Map<String, Object> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof UserDetails userDetails) {
-            return Map.of(
-                    "username", userDetails.getUsername(),
-                    "authorities", userDetails.getAuthorities()
-            );
-        }
-
-        return Map.of("user", principal.toString());
-    }
 }
