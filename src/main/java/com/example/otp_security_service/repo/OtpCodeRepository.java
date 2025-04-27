@@ -9,4 +9,5 @@ import java.util.List;
 public interface OtpCodeRepository extends JpaRepository<OtpCode, Long> {
     OtpCode findByCodeAndUser(String code, User user);
     List<OtpCode> findAllByUser(User user);
+    void deleteAllByUser(User user);
 }

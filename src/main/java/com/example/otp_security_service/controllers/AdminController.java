@@ -3,6 +3,7 @@ package com.example.otp_security_service.controllers;
 import com.example.otp_security_service.models.OtpConfig;
 import com.example.otp_security_service.models.Role;
 import com.example.otp_security_service.models.User;
+import com.example.otp_security_service.repo.OtpCodeRepository;
 import com.example.otp_security_service.repo.UserRepository;
 import com.example.otp_security_service.services.OtpConfigService;
 import com.example.otp_security_service.services.OtpService;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +24,9 @@ public class AdminController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OtpCodeRepository otpCodeRepository;
 
     @Autowired
     private OtpService otpService;
@@ -62,17 +67,24 @@ public class AdminController {
         }
     }
 
-    // Удаление пользователя
+    // Удаление пользователя и привязанных к нему OTP-кодов
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/delete-user")
+    @Transactional
     public String deleteUser(@RequestBody User user) {
         logger.info("Admin request received to delete user with ID: {}", user.getId());
 
         try {
             if (userRepository.existsById(user.getId())) {
+                // Сначала удаляем все OTP-коды, связанные с пользователем
+                otpCodeRepository.deleteAllByUser(user);
+                logger.info("Successfully deleted all OTP codes associated with user with ID: {}", user.getId());
+
+                // Затем удаляем самого пользователя
                 userRepository.deleteById(user.getId());
                 logger.info("Successfully deleted user with ID: {}", user.getId());
-                return "User with ID " + user.getId() + " has been deleted.";
+
+                return "User with ID " + user.getId() + " and all associated OTP codes have been deleted.";
             } else {
                 logger.error("User with ID {} not found.", user.getId());
                 return "User not found.";
