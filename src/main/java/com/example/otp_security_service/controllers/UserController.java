@@ -11,6 +11,8 @@ import com.example.otp_security_service.services.TelegramService;
 import com.example.otp_security_service.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,6 +57,19 @@ public class UserController {
         } catch (IOException e) {
             logger.error("Error writing OTP code to file", e);
         }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails userDetails) {
+            User user = userService.findByUsername(userDetails.getUsername());
+            return ResponseEntity.ok(user);
+        }
+
+        logger.error("Unable to identify user");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
     }
 
     @PostMapping("/me/delete")

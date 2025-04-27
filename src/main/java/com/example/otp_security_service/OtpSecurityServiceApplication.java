@@ -9,5 +9,4 @@ public class OtpSecurityServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(OtpSecurityServiceApplication.class, args);
 	}
-
 }
