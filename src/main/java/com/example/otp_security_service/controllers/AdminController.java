@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasAuthority('ADMIN')")
 public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);  // Логгер для контроллера
@@ -30,7 +29,7 @@ public class AdminController {
         logger.info("Admin request received to fetch all non-admin users.");
 
         try {
-            List<User> users = userRepository.findByRoleNot("ADMIN");
+            List<User> users = userRepository.findAll();
             logger.info("Successfully fetched {} non-admin users.", users.size());
             return users;
         } catch (Exception e) {

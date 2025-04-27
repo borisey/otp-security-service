@@ -42,10 +42,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/register/**").permitAll()
+                        .requestMatchers("/api/users/users").permitAll()
 //                        .requestMatchers("/api/users/**").permitAll()
 //                        .requestMatchers("/api/users/me/confirm-deletion").authenticated()
                         .requestMatchers("/api/users/me").authenticated() // доступ с токеном
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+//                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/admin/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
