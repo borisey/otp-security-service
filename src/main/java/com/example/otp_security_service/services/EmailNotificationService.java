@@ -60,14 +60,13 @@ public class EmailNotificationService {
 
             // Отправляем команду EHLO для проверки доступности сервера
             transport.close();
-            return true;  // Если удалось подключиться, сервер доступен
+            return true;
         } catch (Exception e) {
             // Если возникает исключение при подключении, сервер недоступен
             return false;
         }
     }
 
-    // Метод для отправки письма
     public void sendCode(String toEmail, String code) {
         if (!isMailServerAvailable()) {
             throw new RuntimeException("SMTP server is not available or cannot be reached.");

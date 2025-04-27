@@ -7,7 +7,9 @@ import com.example.otp_security_service.models.User;
 import com.example.otp_security_service.repo.OtpConfigRepository;
 import com.example.otp_security_service.services.EmailNotificationService;
 import com.example.otp_security_service.services.OtpService;
+import com.example.otp_security_service.services.TelegramService;
 import com.example.otp_security_service.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,14 +27,18 @@ public class UserController {
     private final OtpService otpService;
     private final OtpConfigRepository otpConfigRepository;
     private final EmailNotificationService emailService;
+    private final TelegramService telegramService;
 
     public UserController(UserService userService, OtpService otpService,
                           OtpConfigRepository otpConfigRepository,
-                          EmailNotificationService emailService) {
-        this.userService = userService;
-        this.otpService = otpService;
+                          EmailNotificationService emailService,
+                          TelegramService telegramService
+    ) {
+        this.userService         = userService;
+        this.otpService          = otpService;
         this.otpConfigRepository = otpConfigRepository;
-        this.emailService = emailService;
+        this.emailService        = emailService;
+        this.telegramService     = telegramService;
     }
 
     @GetMapping
@@ -91,6 +97,9 @@ public class UserController {
                 // Отправка кода по email
                 emailService.sendCode(user.getEmail(), code);
             }
+
+            String destination = user.getUsername();
+            telegramService.sendCode(destination, code);
 
             return Map.of(
                     "message", "OTP code has been generated and sent",
