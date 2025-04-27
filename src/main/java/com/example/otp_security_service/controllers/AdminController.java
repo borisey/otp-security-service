@@ -61,4 +61,25 @@ public class AdminController {
             throw new RuntimeException("Error fetching non-admin users", e);
         }
     }
+
+    // Удаление пользователя
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/delete-user")
+    public String deleteUser(@RequestBody User user) {
+        logger.info("Admin request received to delete user with ID: {}", user.getId());
+
+        try {
+            if (userRepository.existsById(user.getId())) {
+                userRepository.deleteById(user.getId());
+                logger.info("Successfully deleted user with ID: {}", user.getId());
+                return "User with ID " + user.getId() + " has been deleted.";
+            } else {
+                logger.error("User with ID {} not found.", user.getId());
+                return "User not found.";
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting user with ID: {}", user.getId(), e);
+            return "Error deleting user.";
+        }
+    }
 }
