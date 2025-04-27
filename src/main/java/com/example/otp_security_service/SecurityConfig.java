@@ -24,22 +24,6 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/users/**").permitAll()
-//                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-//                        .anyRequest().authenticated()
-//                )
-//                .userDetailsService((UserDetailsService) userDetailsService)
-//                .formLogin(AbstractHttpConfigurer::disable);
-//
-//        return http.build();
-//    }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
