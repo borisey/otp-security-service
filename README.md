@@ -179,4 +179,4 @@ http://localhost:8080/api/admin/delete-user
 
 Нужно в консоли выполнить команду `mvn test`
 
-Коллекция для тестирования в Постмане доступна по ссылке: `https://github.com/borisey/otp-security-service/blob/main/otp.postman_collection.json`
+Коллекция для тестирования в Постмане доступна по ссылке: [Коллекция в Постмане](https://github.com/borisey/otp-security-service/blob/main/otp.postman_collection.json)
