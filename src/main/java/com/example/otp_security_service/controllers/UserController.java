@@ -15,6 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -41,24 +44,14 @@ public class UserController {
         this.telegramService     = telegramService;
     }
 
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    @GetMapping("/me")
-    public Map<String, Object> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof UserDetails userDetails) {
-            return Map.of(
-                    "username", userDetails.getUsername(),
-                    "authorities", userDetails.getAuthorities()
-            );
+    private void saveOtpCodeToFile(String code, String username, LocalDateTime expiresAt) {
+        String fileName = "otp_codes.txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) {
+            String entry = String.format("Username: %s, OTP Code: %s, Expires At: %s\n", username, code, expiresAt);
+            writer.write(entry);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return Map.of("user", principal.toString());
     }
 
     @PostMapping("/me/delete")
@@ -91,6 +84,9 @@ public class UserController {
             otp.setOperation("DELETE_USER");
 
             otpService.save(otp);
+
+            // Сохраняем OTP-код в файл
+            saveOtpCodeToFile(code, userDetails.getUsername(), expiresAt);
 
             // Проверка доступности SMTP-сервера
             if (emailService.isMailServerAvailable()) {
