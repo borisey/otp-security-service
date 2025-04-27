@@ -173,6 +173,8 @@ http://localhost:8080/api/admin/users
 
 http://localhost:8080/api/admin/otp-config
 
+http://localhost:8080/api/admin/delete-user
+
 ## Как протестировать код
 
 Нужно в консоли выполнить команду `mvn test`
