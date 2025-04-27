@@ -1,7 +1,9 @@
 package com.example.otp_security_service.controllers;
 
+import com.example.otp_security_service.models.OtpConfig;
 import com.example.otp_security_service.models.User;
 import com.example.otp_security_service.repo.UserRepository;
+import com.example.otp_security_service.services.OtpConfigService;
 import com.example.otp_security_service.services.OtpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,28 @@ public class AdminController {
     @Autowired
     private OtpService otpService;
 
-    // Список пользователей кроме админов
+    @Autowired
+    private OtpConfigService otpConfigService;
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/otp-config")
+    public OtpConfig updateOtpConfig(@RequestBody OtpConfig otpConfig) {
+        Integer id = 1;  // Предположим, что ID конфигурации фиксирован
+
+        logger.info("Admin request received to update OTP config with ID: {}", id);
+
+        try {
+            // Используем данные из объекта OtpConfig для обновления
+            OtpConfig updatedConfig = otpConfigService.updateOtpConfig(Long.valueOf(id), otpConfig.getExpirationMinutes(), otpConfig.getCodeLength());
+            logger.info("Successfully updated OTP config with ID: {}", id);
+            return updatedConfig;
+        } catch (Exception e) {
+            logger.error("Error updating OTP config with ID: {}", id, e);
+            throw new RuntimeException("Error updating OTP config", e);
+        }
+    }
+
+    // Список пользователей
     @GetMapping("/users")
     public List<User> getAllNonAdminUsers() {
         logger.info("Admin request received to fetch all non-admin users.");

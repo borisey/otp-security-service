@@ -136,9 +136,34 @@
 
 #### Пользователи, не являющиеся администраторами, не имеют доступа к API администратора
 
-Администратор может получить доступ к данным пользователей с помошью запроса `http://localhost:8080/api/admin/users`
+Для получения администратором доступа к данным пользователей необходимо отправить запрос методом `GET` по URL `http://localhost:8080/api/admin/users`
 
+Для изменения администратором изменить конфигурации OTP-кода необходимо отправить запрос методом `POST` по URL `http://localhost:8080/api/admin/otp-config`
+
+Пример тела запроса:
+```json
+{
+  "expirationMinutes": 15,
+  "codeLength": 6
+}
+```
 
 ## Какие команды поддерживаются
 
+http://localhost:8080/api/register
+
+http://localhost:8080/api/auth/login
+
+http://localhost:8080/api/users/me
+
+http://localhost:8080/api/users/me/delete
+
+http://localhost:8080/api/users/me/confirm-deletion
+
+http://localhost:8080/api/admin/users
+
+http://localhost:8080/api/admin/otp-config
+
 ## Как протестировать код
+
+Нужно в консоли выполнить команду `mvn test`
