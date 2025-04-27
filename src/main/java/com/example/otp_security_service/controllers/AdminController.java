@@ -1,6 +1,7 @@
 package com.example.otp_security_service.controllers;
 
 import com.example.otp_security_service.models.OtpConfig;
+import com.example.otp_security_service.models.Role;
 import com.example.otp_security_service.models.User;
 import com.example.otp_security_service.repo.UserRepository;
 import com.example.otp_security_service.services.OtpConfigService;
@@ -52,7 +53,7 @@ public class AdminController {
         logger.info("Admin request received to fetch all non-admin users.");
 
         try {
-            List<User> users = userRepository.findAll();
+            List<User> users = userRepository.findByRoleNot(Role.ADMIN);
             logger.info("Successfully fetched {} non-admin users.", users.size());
             return users;
         } catch (Exception e) {
