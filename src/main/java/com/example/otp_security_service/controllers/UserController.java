@@ -194,15 +194,4 @@ public class UserController {
         logger.error("Unable to identify user during deletion confirmation");
         return Map.of("error", "Unable to identify user");
     }
-
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        try {
-            List<User> users = userService.getAllUsers();
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            logger.error("Error fetching users", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
 }

@@ -24,7 +24,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private UserDetailsService userDetailsService;
 
     // не требуют аутентификации
-    private static final String[] EXCLUDED_URLS = {"/login", "/api/users/users", "/api/admin/users"};
+    private static final String[] EXCLUDED_URLS = {"/login"};
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
