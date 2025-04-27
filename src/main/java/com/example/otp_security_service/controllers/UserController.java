@@ -9,7 +9,8 @@ import com.example.otp_security_service.services.EmailNotificationService;
 import com.example.otp_security_service.services.OtpService;
 import com.example.otp_security_service.services.TelegramService;
 import com.example.otp_security_service.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,8 @@ import java.util.Map;
 @RequestMapping("/api/users")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     private final UserService userService;
     private final OtpService otpService;
     private final OtpConfigRepository otpConfigRepository;
@@ -37,11 +40,11 @@ public class UserController {
                           EmailNotificationService emailService,
                           TelegramService telegramService
     ) {
-        this.userService         = userService;
-        this.otpService          = otpService;
+        this.userService = userService;
+        this.otpService = otpService;
         this.otpConfigRepository = otpConfigRepository;
-        this.emailService        = emailService;
-        this.telegramService     = telegramService;
+        this.emailService = emailService;
+        this.telegramService = telegramService;
     }
 
     private void saveOtpCodeToFile(String code, String username, LocalDateTime expiresAt) {
@@ -50,22 +53,26 @@ public class UserController {
             String entry = String.format("Username: %s, OTP Code: %s, Expires At: %s\n", username, code, expiresAt);
             writer.write(entry);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error writing OTP code to file", e);
         }
     }
 
     @PostMapping("/me/delete")
     public Map<String, String> requestDelete() {
+        logger.info("Request to delete user initiated");
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof UserDetails userDetails) {
             User user = userService.findByUsername(userDetails.getUsername());
+            logger.info("User found: {}", user.getUsername());
 
             // Получаем текущую конфигурацию OTP (единственная запись)
             OtpConfig config = otpConfigRepository.findTopByOrderByIdAsc();
 
             if (config == null) {
+                logger.error("OTP configuration not found");
                 return Map.of("error", "OTP configuration not found");
             }
 
@@ -92,10 +99,12 @@ public class UserController {
             if (emailService.isMailServerAvailable()) {
                 // Отправка кода по email
                 emailService.sendCode(user.getEmail(), code);
+                logger.info("OTP code sent to email: {}", user.getEmail());
             }
 
             String destination = user.getUsername();
             telegramService.sendCode(destination, code);
+            logger.info("OTP code sent to telegram: {}", destination);
 
             return Map.of(
                     "message", "OTP code has been generated and sent",
@@ -104,6 +113,7 @@ public class UserController {
             );
         }
 
+        logger.error("Unable to identify user");
         return Map.of("error", "Unable to identify user");
     }
 
@@ -112,8 +122,11 @@ public class UserController {
         String code = request.get("code");
 
         if (code == null || code.isEmpty()) {
+            logger.error("OTP code is required but not provided");
             return Map.of("error", "OTP code is required");
         }
+
+        logger.info("Confirming deletion for OTP code: {}", code);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
@@ -128,10 +141,12 @@ public class UserController {
             OtpCode otp = otpService.findOtpByCodeAndUser(code, managedUser);
 
             if (otp == null) {
+                logger.error("Invalid OTP code: {}", code);
                 return Map.of("error", "Invalid OTP code");
             }
 
             if (otp.getStatus() == OtpStatus.USED) {
+                logger.error("OTP code has already been used: {}", code);
                 return Map.of("error", "OTP code has already been used");
             }
 
@@ -139,6 +154,7 @@ public class UserController {
                 otp.setStatus(OtpStatus.EXPIRED);
                 otp.setUser(managedUser); // важно
                 otpService.save(otp);
+                logger.info("OTP code expired: {}", code);
                 return Map.of("error", "OTP code has expired");
             }
 
@@ -155,10 +171,12 @@ public class UserController {
 
             // Удаляем пользователя
             userService.deleteById(managedUser.getId());
+            logger.info("User deleted: {}", managedUser.getUsername());
 
             return Map.of("message", "User has been deleted");
         }
 
+        logger.error("Unable to identify user during deletion confirmation");
         return Map.of("error", "Unable to identify user");
     }
 }
