@@ -96,6 +96,18 @@
 
 ![Авторизация](img/me-confitm-deletion.png)
 
+Предусмотрено три статуса OTP-кодов
+
+```
+public enum OtpStatus {
+    ACTIVE,
+    EXPIRED,
+    USED
+}
+```
+
+Статус кодов валидируется и изменяется на этапе подтверждения кода в методе `public Map<String, String> confirmDeletion(@RequestBody Map<String, String> request)`класса `UserController`
+
 ### 6. Отправка OTP-кода на email пользователя
 
 Для проверки необходимо добавить параметры smtp-сервера в файле `src/main/resources/email.properties`
